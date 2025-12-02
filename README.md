@@ -16,6 +16,18 @@ A Node.js web service that generates placeholder images with custom dimensions, 
 - Health check endpoint for monitoring
 - Request validation and rate limiting
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Docker Usage](#docker-usage)
+- [Usage](#usage)
+- [API Endpoints](#api-endpoints)
+- [Error Handling](#error-handling)
+- [Advanced Configuration](#advanced-configuration)
+- [Dependencies](#dependencies)
+- [License](#license)
+- [Contributing](#contributing)
+
 ## Installation
 
 1. Clone the repository:
@@ -27,6 +39,66 @@ cd imagezt
 2. Install dependencies:
 ```bash
 npm install
+```
+
+## Docker Usage
+
+### Using Docker Compose (Recommended)
+
+For development:
+```bash
+docker-compose up -d
+```
+
+For production:
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Using Docker Directly
+
+Build the image:
+```bash
+docker build -t imagezt .
+```
+
+Run the container:
+```bash
+docker run -p 3000:3000 --name imagezt imagezt
+```
+
+### Using the Pre-built Image from GHCR
+
+Pull the image:
+```bash
+docker pull ghcr.io/davidgoweb/imagezt:latest
+```
+
+Run the container:
+```bash
+docker run -p 3000:3000 --name imagezt ghcr.io/davidgoweb/imagezt:latest
+```
+
+### Environment Variables with Docker
+
+You can pass environment variables to Docker:
+
+```bash
+docker run -p 3000:3000 \
+  -e NODE_ENV=production \
+  -e PORT=3000 \
+  -e CORS_ENABLED=true \
+  -e RATE_LIMIT_ENABLED=true \
+  --name imagezt \
+  imagezt
+```
+
+Or use an environment file:
+```bash
+docker run -p 3000:3000 \
+  --env-file .env \
+  --name imagezt \
+  imagezt
 ```
 
 ## Usage

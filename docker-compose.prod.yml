@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  imagezt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imagezt-prod
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - CORS_ENABLED=${CORS_ENABLED:-false}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED:-true}
+      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-900000}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      - DEBUG=false
+      - VERBOSE_ERRORS=false
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - HEALTH_CHECK_ENABLED=true
+      - HEALTH_CHECK_PATH=/health
+      - IMAGE_FORMAT=${IMAGE_FORMAT:-png}
+      - IMAGE_QUALITY=${IMAGE_QUALITY:-90}
+      - CACHE_MAX_AGE=${CACHE_MAX_AGE:-31536000}
+      - MAX_IMAGE_DIMENSION=${MAX_IMAGE_DIMENSION:-5000}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
