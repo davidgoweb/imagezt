@@ -7,7 +7,9 @@
     "dev": "nodemon index.js",
     "build": "webpack --mode production",
     "start:prod": "node dist/bundle.js",
-    "test": "node test.js"
+    "test": "node test.js",
+    "test:env": "node -e \"console.log('Environment variables loaded:', Object.keys(process.env).filter(k => k.includes('IMAGE') || k.includes('CACHE') || k.includes('PORT')).map(k => `${k}=${process.env[k]}`).join(', '))\"",
+    "env:check": "node -e \"require('dotenv').config(); console.log('Environment:'); console.log('PORT:', process.env.PORT || 3000); console.log('IMAGE_FORMAT:', process.env.IMAGE_FORMAT || 'png'); console.log('CACHE_MAX_AGE:', process.env.CACHE_MAX_AGE || 31536000); console.log('MAX_IMAGE_DIMENSION:', process.env.MAX_IMAGE_DIMENSION || 5000);\""
   },
   "repository": {
     "type": "git",
@@ -22,8 +24,12 @@
   "homepage": "https://github.com/davidgoweb/imagezt#readme",
   "description": "",
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "jimp": "^1.6.0"
+    "express-rate-limit": "^8.2.1",
+    "jimp": "^1.6.0",
+    "morgan": "^1.10.1"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",
