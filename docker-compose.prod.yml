@@ -7,10 +7,10 @@ services:
       dockerfile: Dockerfile
     container_name: imagezt-prod
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-5930}:5930"
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=5930
       - HOST=0.0.0.0
       - CORS_ENABLED=${CORS_ENABLED:-false}
       - CORS_ORIGIN=${CORS_ORIGIN:-*}
@@ -30,7 +30,7 @@ services:
       - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5930/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
       timeout: 10s
       retries: 3

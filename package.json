@@ -12,7 +12,7 @@
     "start:prod": "node dist/bundle.js",
     "test": "node test.js",
     "test:env": "node -e \"console.log('Environment variables loaded:', Object.keys(process.env).filter(k => k.includes('IMAGE') || k.includes('CACHE') || k.includes('PORT')).map(k => `${k}=${process.env[k]}`).join(', '))\"",
-    "env:check": "node -e \"require('dotenv').config(); console.log('Environment:'); console.log('PORT:', process.env.PORT || 3000); console.log('IMAGE_FORMAT:', process.env.IMAGE_FORMAT || 'png'); console.log('CACHE_MAX_AGE:', process.env.CACHE_MAX_AGE || 31536000); console.log('MAX_IMAGE_DIMENSION:', process.env.MAX_IMAGE_DIMENSION || 5000);\""
+    "env:check": "node -e \"require('dotenv').config(); console.log('Environment:'); console.log('PORT:', process.env.PORT || 5930); console.log('IMAGE_FORMAT:', process.env.IMAGE_FORMAT || 'png'); console.log('CACHE_MAX_AGE:', process.env.CACHE_MAX_AGE || 31536000); console.log('MAX_IMAGE_DIMENSION:', process.env.MAX_IMAGE_DIMENSION || 5000);\""
   },
   "repository": {
     "type": "git",

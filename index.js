@@ -22,7 +22,7 @@ app.set('etag', false); // We handle ETags manually
 app.set('x-powered-by', false); // Remove X-Powered-By header
 
 // Server Configuration
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5930;
 const HOST = process.env.HOST || 'localhost';
 const NODE_ENV = process.env.NODE_ENV || 'development';
 

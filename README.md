@@ -65,7 +65,7 @@ docker build -t imagezt .
 
 Run the container:
 ```bash
-docker run -p 3000:3000 --name imagezt imagezt
+docker run -p 5930:5930 --name imagezt imagezt
 ```
 
 ### Using the Pre-built Image from GHCR
@@ -77,7 +77,7 @@ docker pull ghcr.io/davidgoweb/imagezt:latest
 
 Run the container:
 ```bash
-docker run -p 3000:3000 --name imagezt ghcr.io/davidgoweb/imagezt:latest
+docker run -p 5930:5930 --name imagezt ghcr.io/davidgoweb/imagezt:latest
 ```
 
 ### Environment Variables with Docker
@@ -85,9 +85,9 @@ docker run -p 3000:3000 --name imagezt ghcr.io/davidgoweb/imagezt:latest
 You can pass environment variables to Docker:
 
 ```bash
-docker run -p 3000:3000 \
+docker run -p 5930:5930 \
   -e NODE_ENV=production \
-  -e PORT=3000 \
+  -e PORT=5930 \
   -e CORS_ENABLED=true \
   -e RATE_LIMIT_ENABLED=true \
   --name imagezt \
@@ -96,7 +96,7 @@ docker run -p 3000:3000 \
 
 Or use an environment file:
 ```bash
-docker run -p 3000:3000 \
+docker run -p 5930:5930 \
   --env-file .env \
   --name imagezt \
   imagezt
@@ -109,7 +109,7 @@ Start the server:
 npm start
 ```
 
-The server will start on port 3000 by default. All configuration can be customized through environment variables.
+The server will start on port 5930 by default. All configuration can be customized through environment variables.
 
 ### Environment Configuration
 
@@ -120,7 +120,7 @@ cp .env.example .env
 ```
 
 Key environment variables:
-- `PORT`: Server port (default: 3000)
+- `PORT`: Server port (default: 5930)
 - `IMAGE_FORMAT`: Output format - png, jpeg, or bmp (default: png)
 - `IMAGE_QUALITY`: Image quality for JPEG (1-100, default: 90)
 - `CACHE_MAX_AGE`: Cache duration in seconds (default: 31536000)
@@ -132,7 +132,7 @@ For a complete list of environment variables, see [env-config.md](env-config.md)
 
 The service includes a health check endpoint:
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:5930/health
 ```
 
 ### Environment Check Scripts
@@ -166,13 +166,13 @@ Parameters:
 
 ### Examples
 
-- Basic placeholder: `http://localhost:3000/800x600/ffffff/000000`
+- Basic placeholder: `http://localhost:5930/800x600/ffffff/000000`
   - Creates an 800x600 image with white background and black text showing "800x600"
 
-- Custom text: `http://localhost:3000/400x300/ff0000/00ff00?text=Hello`
+- Custom text: `http://localhost:5930/400x300/ff0000/00ff00?text=Hello`
   - Creates a 400x300 image with red background and green text showing "Hello"
 
-- Small image: `http://localhost:3000/100x100/cccccc/333333`
+- Small image: `http://localhost:5930/100x100/cccccc/333333`
   - Creates a 100x100 square with gray background and dark gray text
 
 ## Error Handling

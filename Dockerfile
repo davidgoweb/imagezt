@@ -27,7 +27,7 @@ RUN chown -R nodejs:nodejs /app
 USER nodejs
 
 # Expose port
-EXPOSE 3000
+EXPOSE 5930
 
 
 # Start the application
