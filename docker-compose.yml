@@ -12,10 +12,12 @@ services:
       - NODE_ENV=development
       - PORT=3000
       - HOST=0.0.0.0
-      - CORS_ENABLED=true
-      - RATE_LIMIT_ENABLED=false
-      - DEBUG=true
-      - VERBOSE_ERRORS=true
+      - CORS_ENABLED=false
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_WINDOW=900000
+      - RATE_LIMIT_MAX=100
+      - DEBUG=false
+      - VERBOSE_ERRORS=false
       - LOG_LEVEL=debug
       - HEALTH_CHECK_ENABLED=true
       - HEALTH_CHECK_PATH=/health

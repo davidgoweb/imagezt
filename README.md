@@ -23,6 +23,7 @@ A Node.js web service that generates placeholder images with custom dimensions, 
 - [Usage](#usage)
 - [API Endpoints](#api-endpoints)
 - [Error Handling](#error-handling)
+- [Environment Configuration](#environment-configuration)
 - [Advanced Configuration](#advanced-configuration)
 - [Dependencies](#dependencies)
 - [License](#license)
@@ -177,16 +178,14 @@ Parameters:
 ## Error Handling
 
 The service returns appropriate HTTP status codes for errors:
-- `400`: Invalid dimensions or color formats
-- `500`: Server errors during image generation
-
-## Error Handling
-
-The service returns appropriate HTTP status codes for errors:
 - `400`: Invalid dimensions or color formats, or dimensions exceed limits
 - `408`: Request timeout
 - `429`: Too many requests (if rate limiting is enabled)
 - `500`: Server errors during image generation
+
+## Environment Configuration
+
+For detailed environment variable documentation, see [env-config.md](env-config.md).
 
 ## Advanced Configuration
 

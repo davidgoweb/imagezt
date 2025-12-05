@@ -93,12 +93,18 @@ const isValidHexColor = (hex) => {
 
 // Select appropriate font size based on image dimensions
 const selectFont = async (width, height) => {
-  const area = width * height;
-  if (area > 800000) return await loadFont(fonts.SANS_128_BLACK);
-  if (area > 200000) return await loadFont(fonts.SANS_64_BLACK);
-  if (area > 50000) return await loadFont(fonts.SANS_32_BLACK);
-  if (area > 10000) return await loadFont(fonts.SANS_16_BLACK);
-  return await loadFont(fonts.SANS_8_BLACK);
+  try {
+    const area = width * height;
+    if (area > 800000) return await loadFont(fonts.SANS_128_BLACK);
+    if (area > 200000) return await loadFont(fonts.SANS_64_BLACK);
+    if (area > 50000) return await loadFont(fonts.SANS_32_BLACK);
+    if (area > 10000) return await loadFont(fonts.SANS_16_BLACK);
+    return await loadFont(fonts.SANS_8_BLACK);
+  } catch (error) {
+    console.error('Error loading font:', error);
+    // Fallback to a basic font if loading fails
+    return await loadFont(fonts.SANS_16_BLACK);
+  }
 };
 
 // Build cache control header based on configuration
@@ -230,7 +236,7 @@ app.get('/:dims/:bgColor/:fgColor', async (req, res) => {
     }
 });
 
-app.listen(PORT, HOST, () => {
+const server = app.listen(PORT, HOST, () => {
     console.log(`ImageZT placeholder service running on http://${HOST}:${PORT}`);
     console.log(`Environment: ${NODE_ENV}`);
     
@@ -247,4 +253,31 @@ app.listen(PORT, HOST, () => {
             healthCheckEnabled: process.env.HEALTH_CHECK_ENABLED !== 'false'
         });
     }
+});
+
+// Handle server errors
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use. Please use a different port.`);
+    } else {
+        console.error('Server error:', error);
+    }
+    process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
 });
