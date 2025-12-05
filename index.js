@@ -12,6 +12,15 @@ const path = require('path');
 
 const app = express();
 
+// In-memory cache for generated images and fonts
+const imageCache = new Map();
+const fontCache = new Map();
+const MAX_CACHE_SIZE = parseInt(process.env.MAX_CACHE_SIZE) || 100;
+
+// Performance optimizations
+app.set('etag', false); // We handle ETags manually
+app.set('x-powered-by', false); // Remove X-Powered-By header
+
 // Server Configuration
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost';
@@ -91,19 +100,45 @@ const isValidHexColor = (hex) => {
   return /^[0-9A-Fa-f]{6}$/.test(hex);
 };
 
-// Select appropriate font size based on image dimensions
+// Select appropriate font size based on image dimensions with caching
 const selectFont = async (width, height) => {
+  const area = width * height;
+  let fontKey;
+  
+  if (area > 800000) fontKey = 'SANS_128_BLACK';
+  else if (area > 200000) fontKey = 'SANS_64_BLACK';
+  else if (area > 50000) fontKey = 'SANS_32_BLACK';
+  else if (area > 10000) fontKey = 'SANS_16_BLACK';
+  else fontKey = 'SANS_8_BLACK';
+  
+  // Check cache first
+  if (fontCache.has(fontKey)) {
+    return fontCache.get(fontKey);
+  }
+  
   try {
-    const area = width * height;
-    if (area > 800000) return await loadFont(fonts.SANS_128_BLACK);
-    if (area > 200000) return await loadFont(fonts.SANS_64_BLACK);
-    if (area > 50000) return await loadFont(fonts.SANS_32_BLACK);
-    if (area > 10000) return await loadFont(fonts.SANS_16_BLACK);
-    return await loadFont(fonts.SANS_8_BLACK);
+    const font = await loadFont(fonts[fontKey]);
+    
+    // Cache the font (limit cache size)
+    if (fontCache.size >= MAX_CACHE_SIZE) {
+      const firstKey = fontCache.keys().next().value;
+      fontCache.delete(firstKey);
+    }
+    fontCache.set(fontKey, font);
+    
+    return font;
   } catch (error) {
     console.error('Error loading font:', error);
     // Fallback to a basic font if loading fails
-    return await loadFont(fonts.SANS_16_BLACK);
+    if (!fontCache.has('SANS_16_BLACK')) {
+      try {
+        const fallbackFont = await loadFont(fonts.SANS_16_BLACK);
+        fontCache.set('SANS_16_BLACK', fallbackFont);
+      } catch (fallbackError) {
+        console.error('Error loading fallback font:', fallbackError);
+      }
+    }
+    return fontCache.get('SANS_16_BLACK');
   }
 };
 
@@ -121,6 +156,22 @@ const buildCacheControl = () => {
   }
   return cacheControl;
 };
+
+// Simple favicon endpoint to prevent 404s
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end(); // No content
+});
+
+// Simple root endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    service: 'ImageZT',
+    version: '1.0.0',
+    description: 'Placeholder image generation service',
+    usage: '/:width/:height/:bgColor/:fgColor?text=custom',
+    example: '/800x600/ffffff/000000?text=Hello'
+  });
+});
 
 // Health check endpoint
 if (process.env.HEALTH_CHECK_ENABLED !== 'false') {
@@ -165,6 +216,26 @@ app.get('/:dims/:bgColor/:fgColor', async (req, res) => {
         return res.status(400).send('Invalid foreground color format. Use 6-digit hex, e.g., 000000');
     }
 
+    // Create cache key
+    const cacheKey = `${width}x${height}-${bgColor}-${fgColor}-${text}-${config.imageFormat}-${config.imageQuality}`;
+    
+    // Check cache first
+    if (imageCache.has(cacheKey)) {
+        const cachedData = imageCache.get(cacheKey);
+        res.setHeader('Content-Type', cachedData.mimeType);
+        res.setHeader('Cache-Control', buildCacheControl());
+        
+        if (config.etagEnabled) {
+            res.setHeader('ETag', cachedData.etag);
+        }
+        
+        if (process.env.CONTENT_DISPOSITION) {
+            res.setHeader('Content-Disposition', `${process.env.CONTENT_DISPOSITION}; filename="placeholder-${width}x${height}.${config.imageFormat}"`);
+        }
+        
+        return res.send(cachedData.buffer);
+    }
+
     try {
         const bgHex = hexToJimpInt(bgColor);
         const fgHex = hexToJimpInt(fgColor);
@@ -172,7 +243,7 @@ app.get('/:dims/:bgColor/:fgColor', async (req, res) => {
         // 1. Create a new image canvas
         const image = new Jimp({ width, height, color: bgHex });
 
-        // 2. Select appropriate font based on image dimensions
+        // 2. Select appropriate font based on image dimensions (cached)
         const font = await selectFont(width, height);
         
         // 3. Draw the text, centered
@@ -204,19 +275,33 @@ app.get('/:dims/:bgColor/:fgColor', async (req, res) => {
             mimeType = 'image/bmp';
         } else {
             mimeType = 'image/png';
+            // Use lower compression for faster generation
             bufferOptions = {
-                compressionLevel: config.pngCompressionLevel
+                compressionLevel: Math.min(config.pngCompressionLevel, 3)
             };
         }
 
         const buffer = await image.getBuffer(mimeType, bufferOptions);
+        const etag = config.etagEnabled ? `"${Buffer.from(cacheKey).toString('base64')}"` : null;
+        
+        // Cache the generated image (limit cache size)
+        if (imageCache.size >= MAX_CACHE_SIZE) {
+            const firstKey = imageCache.keys().next().value;
+            imageCache.delete(firstKey);
+        }
+        
+        imageCache.set(cacheKey, {
+            buffer,
+            mimeType,
+            etag
+        });
         
         // Set headers based on environment configuration
         res.setHeader('Content-Type', mimeType);
         res.setHeader('Cache-Control', buildCacheControl());
         
-        if (config.etagEnabled) {
-            res.setHeader('ETag', `"${Buffer.from(`${width}x${height}-${bgColor}-${fgColor}-${text}`).toString('base64')}"`);
+        if (etag) {
+            res.setHeader('ETag', etag);
         }
         
         if (process.env.CONTENT_DISPOSITION) {
@@ -250,10 +335,15 @@ const server = app.listen(PORT, HOST, () => {
             maxImageDimension: config.maxImageDimension,
             corsEnabled: process.env.CORS_ENABLED === 'true',
             rateLimitEnabled: process.env.RATE_LIMIT_ENABLED === 'true',
-            healthCheckEnabled: process.env.HEALTH_CHECK_ENABLED !== 'false'
+            healthCheckEnabled: process.env.HEALTH_CHECK_ENABLED !== 'false',
+            maxCacheSize: MAX_CACHE_SIZE
         });
     }
 });
+
+// Enable keep-alive for better performance
+server.keepAliveTimeout = 65000; // 65 seconds
+server.headersTimeout = 66000; // 66 seconds
 
 // Handle server errors
 server.on('error', (error) => {
