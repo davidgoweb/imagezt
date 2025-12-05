@@ -5,8 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      platforms:
-        - linux/arm64
     container_name: imagezt-prod
     ports:
       - "${PORT:-3000}:3000"
