@@ -44,7 +44,43 @@ npm install
 
 ## Docker Usage
 
-### Using Docker Compose (Recommended)
+### Using Docker Compose with GHCR Image
+
+Create a `docker-compose.yml` file with the following content to use the pre-built image from GitHub Container Registry:
+
+```yaml
+version: '3.8'
+
+services:
+  imagezt:
+    image: ghcr.io/davidgoweb/imagezt:latest
+    container_name: imagezt
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - CORS_ENABLED=true
+      - RATE_LIMIT_ENABLED=true
+      - CACHE_MAX_AGE=31536000
+      - IMAGE_FORMAT=png
+      - IMAGE_QUALITY=90
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+```
+
+Then start the service with:
+```bash
+docker-compose up -d
+```
+
+### Using Docker Compose (Local Build)
 
 For development:
 ```bash
