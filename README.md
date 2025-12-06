@@ -7,6 +7,8 @@ A Node.js web service that generates placeholder images with custom dimensions, 
 - Generate placeholder images with custom dimensions
 - Customize background and foreground colors
 - Add custom text (defaults to dimensions)
+- **Font sizing options**: Specify exact font sizes in pixels or use automatic sizing
+- **Text wrapping**: Wrap long text at word boundaries with configurable width
 - Automatic font sizing based on image dimensions
 - Proper color rendering for text
 - Configurable caching headers for improved performance
@@ -126,6 +128,18 @@ Key environment variables:
 - `CACHE_MAX_AGE`: Cache duration in seconds (default: 31536000)
 - `MAX_IMAGE_DIMENSION`: Maximum allowed width/height (default: 5000)
 
+### Font Settings
+- `DEFAULT_FONT_SIZE`: Default font size in pixels (8-128, default: 16)
+- `MIN_FONT_SIZE`: Minimum allowed font size (default: 8)
+- `MAX_FONT_SIZE`: Maximum allowed font size (default: 128)
+- `FONT_SIZE_AUTO_FALLBACK`: Enable auto-sizing when no fontSize specified (default: true)
+
+### Text Wrapping Settings
+- `DEFAULT_TEXT_WRAP`: Enable text wrapping by default (true/false, default: false)
+- `DEFAULT_TEXT_WRAP_WIDTH`: Default wrap width percentage (50-95, default: 80)
+- `MIN_TEXT_WRAP_WIDTH`: Minimum wrap width percentage (default: 50)
+- `MAX_TEXT_WRAP_WIDTH`: Maximum wrap width percentage (default: 95)
+
 For a complete list of environment variables, see [env-config.md](env-config.md).
 
 ### Health Check
@@ -163,6 +177,23 @@ Parameters:
 ### Optional Query Parameters
 
 - `text`: Custom text to display on the image (defaults to dimensions)
+- `fontSize`: Font size in pixels (8-128, defaults to auto-sizing based on image dimensions)
+- `textWrap`: Enable text wrapping (true/false, defaults to false)
+- `textWrapWidth`: Text wrap width as percentage of image width (50-95, defaults to 80)
+
+### Font Sizing
+
+The service supports exact font sizes in pixels:
+- Available sizes: 8, 16, 32, 64, 128 pixels
+- If exact size is not available, the nearest size will be used
+- When `fontSize` is not specified, automatic sizing based on image dimensions is used
+
+### Text Wrapping
+
+When `textWrap=true`, long text will be wrapped at word boundaries:
+- Text wraps within the specified percentage of image width
+- Multiple lines are vertically centered
+- Line height is 1.2x the font size for optimal readability
 
 ### Examples
 
@@ -171,6 +202,15 @@ Parameters:
 
 - Custom text: `http://localhost:5930/400x300/ff0000/00ff00?text=Hello`
   - Creates a 400x300 image with red background and green text showing "Hello"
+
+- Custom font size: `http://localhost:5930/400x300/ff0000/00ff00?text=Hello&fontSize=32`
+  - Creates a 400x300 image with 32px font size
+
+- Text wrapping: `http://localhost:5930/600x400/cccccc/333333?text=This is a very long text that should wrap nicely&textWrap=true`
+  - Creates a 600x400 image with wrapped text
+
+- Custom wrap width: `http://localhost:5930/500x300/000000/ffffff?text=Custom wrap width&fontSize=24&textWrap=true&textWrapWidth=70`
+  - Creates a 500x300 image with 24px font and 70% wrap width
 
 - Small image: `http://localhost:5930/100x100/cccccc/333333`
   - Creates a 100x100 square with gray background and dark gray text
