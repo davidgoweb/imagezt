@@ -61,9 +61,13 @@ const wrapText = (text, font, maxWidth) => {
  */
 const calculateTextPosition = (width, height, lines, font, textWrapWidth) => {
   const fontHeight = font.height || 16; // Fallback height if not available
-  const lineHeight = Math.floor(fontHeight * 1.2); // 1.2x line spacing
+  // Adjust line height based on font size - larger fonts need proportionally more spacing
+  const lineHeightMultiplier = fontHeight > 64 ? 2.0 : (fontHeight > 32 ? 1.8 : (fontHeight > 16 ? 1.5 : 1.2));
+  const lineHeight = Math.floor(fontHeight * lineHeightMultiplier+20);
   const totalTextHeight = lines.length * lineHeight;
-  const startY = Math.max(0, (height - totalTextHeight) / 2);
+  // Account for text baseline - adjust start position to properly center text
+  const baselineOffset = Math.floor(fontHeight * 0.25); // Approximate baseline offset
+  const startY = Math.max(0, (height - totalTextHeight) / 2 + baselineOffset);
 
   const positions = [];
   for (let i = 0; i < lines.length; i++) {
@@ -87,9 +91,13 @@ const calculateTextPosition = (width, height, lines, font, textWrapWidth) => {
 const calculateSingleLinePosition = (width, height, text, font) => {
   const textWidth = measureText(font, text);
   const textHeight = font.height || 16;
+  
+  // Account for text baseline - adjust y position to properly center text
+  // Jimp renders text from baseline, so we need to offset the centering
+  const baselineOffset = Math.floor(textHeight * 0.15); // Approximate baseline offset
 
   const x = Math.max(0, (width - textWidth) / 2);
-  const y = Math.max(0, (height - textHeight) / 2);
+  const y = Math.max(0, (height - textHeight) / 2 + baselineOffset);
 
   return { x, y };
 };
